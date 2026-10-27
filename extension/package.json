@@ -6,6 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "node build.mjs",
+		"build:firefox": "node build-firefox.mjs",
 		"check": "tsc -p tsconfig.json",
 		"pack": "node pack-crx.mjs",
 		"dist": "npm run build && (cd dist && zip -qr ../openevidence-mcp-relay-extension.zip .) && npm run pack"

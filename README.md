@@ -53,6 +53,7 @@ make all      # installs deps · builds the MCP server + relay extension ·
 Then the one manual step `make all` prints (a browser action that can't be scripted):
 
 1. **Load the extension** — open `chrome://extensions` (Chrome / Edge / Brave / Arc / Vivaldi / Opera) → turn on **Developer mode** → **Load unpacked** → select `extension/dist`.
+   *Firefox / Zen / other Gecko browsers (128+):* run `make extension-firefox`, then open `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → select `extension/dist-firefox/manifest.json`. Temporary add-ons are removed when the browser quits; for a permanent install, sign it as an unlisted add-on on AMO (`web-ext sign`). In `about:addons` → Permissions, make sure `openevidence.com` and `127.0.0.1` are allowed. Run only one browser's extension at a time — the relay leases to a single installation.
 2. **Stay logged in to [openevidence.com](https://www.openevidence.com)** in that browser, and keep a tab open. That login *is* your authentication.
 3. **Run your AI tool.** The server auto-starts the relay and connects to the extension.
 
@@ -334,6 +335,7 @@ Run `make help` for the grouped, always-current list.
 | `make uninstall`                                    | Unregister from the CLIs, stop daemons, remove `dist/` (keeps `~/.openevidence-mcp` + the browser extension)                |
 | `make help`                                         | Grouped reference of every target                                                                                           |
 | `make kill-all`                                     | Stop all MCP servers + the relay daemon and free port 8787                                                                  |
+| `make extension-firefox`                            | Build the Firefox/Zen (Gecko 128+) extension into `extension/dist-firefox/`                                                 |
 | `make relay`                                        | Run the standalone relay daemon in the foreground (debug)                                                                   |
 | `make deps` / `check` / `test` / `smoke`            | Force install · type-check · unit tests · auth+history smoke (cookie path)                                                  |
 | `make build [HAR=…]`                                | Extract the fingerprint if a HAR is given, then compile TypeScript                                                          |

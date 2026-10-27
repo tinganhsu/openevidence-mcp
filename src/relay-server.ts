@@ -189,7 +189,11 @@ export function startRelayServer(options: RelayServerOptions): Promise<RelayServ
   const extensionOrigin = (req: IncomingMessage): string | null => {
     const raw = req.headers.origin;
     const origin = Array.isArray(raw) ? raw[0] : raw;
-    return origin && /^chrome-extension:\/\/[a-p]{32}$/i.test(origin) ? origin : null;
+    return origin &&
+      (/^chrome-extension:\/\/[a-p]{32}$/i.test(origin) ||
+        /^moz-extension:\/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(origin))
+      ? origin
+      : null;
   };
 
   // Chromium does NOT attach an Origin header to fetches an extension makes to

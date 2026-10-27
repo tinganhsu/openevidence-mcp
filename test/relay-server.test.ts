@@ -252,6 +252,44 @@ test("relay: accepts the capability header without an Origin (real Chromium exte
   }
 });
 
+// Firefox (and forks like Zen) omit the Origin on the extension's GET /poll but
+// attach `moz-extension://<uuid>` on its POST /result. Both must pair with the
+// same installation, while a malformed moz-extension origin is still rejected.
+test("relay: accepts a Firefox extension that sends moz-extension:// only on POST", async () => {
+  const relay = await startRelayServer({ port: 0 });
+  const noOrigin = { [RELAY_EXTENSION_HEADER]: RELAY_EXTENSION_HEADER_VALUE };
+  const mozOrigin = "moz-extension://0f3c2a1e-9b8d-4c7e-a6f5-1234567890ab";
+  try {
+    const pollP = fetch(`http://127.0.0.1:${relay.port}/poll`, { headers: noOrigin }).then((r) =>
+      r.json(),
+    );
+    const pending = relay.request({ method: "GET", path: "/api/auth/me" }, { timeoutMs: 5000 });
+    const delivered = (await pollP) as { reqId: string };
+
+    const bad = await fetch(`http://127.0.0.1:${relay.port}/result`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        ...noOrigin,
+        origin: "moz-extension://not-a-uuid",
+      },
+      body: JSON.stringify({ reqId: delivered.reqId, status: 200, body: '{"ok":1}' }),
+    });
+    assert.equal(bad.status, 403);
+
+    const res = await fetch(`http://127.0.0.1:${relay.port}/result`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...noOrigin, origin: mozOrigin },
+      body: JSON.stringify({ reqId: delivered.reqId, status: 200, body: '{"ok":1}' }),
+    });
+    assert.equal(res.status, 200);
+    const out = await pending;
+    assert.equal(out.status, 200);
+  } finally {
+    relay.close();
+  }
+});
+
 test("relay: one live extension installation owns an exclusive lease", async () => {
   const relay = await startRelayServer({ port: 0 });
   const otherHeaders = {
